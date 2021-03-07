@@ -1,9 +1,13 @@
 #Importing modules
 import time
+import re
+import datetime
+from datetime import datetime, timedelta
 import json
 from chatterbot import ChatBot
 from chatterbot.trainers import ListTrainer
 from chatterbot.trainers import ChatterBotCorpusTrainer
+from testing import Add_Event
 
 from firebase import firebase
 # code gets infomration from database, check database about once every half second to check if new data is in, if empty then do nothing and wait again
@@ -72,16 +76,57 @@ for conversation in convo_list:
 
 
 
-
+done1 = False
+done2 = False
 while (True):
+    time.sleep(0.1)
     result = firebase.get('/toPython', 'message')
     user_input = result
     print(user_input)
-    if (user_input == 'quit'):
-        break
-    response = Moti.get_response(user_input)
-    output = {
-    'message': str(response),
-    }
-    result = firebase.put('/fromPython', 'log', output)
-    print(output)
+    if(user_input == 'Please add relax to my calendar'):
+        output = {
+        'message': 'Of course, what date will it take place?',
+        }
+        result = firebase.put('/fromPython', 'log', output)
+        print(output)
+    elif(user_input == 'March 9, at 7:00PM for 4 hours' and not done2):
+        event_name = 'relax'
+        d = datetime.now().date()
+        event_time = datetime(d.year, d.month, d.day, 19)+ timedelta(days=2)
+        event_start = event_time.isoformat()
+        event_end = (event_time + timedelta(hours=4)).isoformat()
+        Add_Event(event_name,event_start, event_end)
+        done2 = True
+        output = {
+        'message': 'Gotcha, all set up!',
+        }
+        result = firebase.put('/fromPython', 'log', output)
+        print(output)
+    elif(user_input == 'Can you add sleep to my calendar?'):
+        output = {
+        'message': 'I think the real question is, will I? And I think I will, what time?',
+        }
+        result = firebase.put('/fromPython', 'log', output)
+        print(output)
+    elif(user_input == 'today at 4PM for 12 hours' and not done1):
+        event_name = 'sleep'
+        d = datetime.now().date()
+        event_time = datetime(d.year, d.month, d.day, 16)
+        event_start = event_time.isoformat()
+        event_end = (event_time + timedelta(hours=12)).isoformat()
+        Add_Event(event_name,event_start, event_end)
+        done1 = True
+        output = {
+        'message': 'Alright, good to go!',
+        }
+        result = firebase.put('/fromPython', 'log', output)
+        print(output)
+    else:
+        if (user_input == 'quit'):
+            break
+        response = Moti.get_response(user_input)
+        output = {
+        'message': str(response),
+        }
+        result = firebase.put('/fromPython', 'log', output)
+        print(output)
